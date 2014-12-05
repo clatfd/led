@@ -1,0 +1,60 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+	<title>LED</title>
+	<style type="text/css">
+		div.state{
+			height: 50px;
+			padding-bottom: 20px;
+		}
+		#picmap{
+			margin: auto;
+			background: url('map.jpg');
+			width: 300px;
+			height: 700px;
+			border: 1px solid;
+		}
+		#posdot{
+			width: 20px;
+			height: 20px;
+			background: url('car.png');
+			margin-left: -10px;
+			margin-top: -10px;
+			position: relative;
+		}
+	</style>
+</head>
+<body style="text-align:center">
+<div class="container" style="margin:auto">
+	<div class="state">
+		<p>当前位置：</p>
+		X:<input id="locx" class="form-control" type="text" value="">
+		Y:<input id="locy" class="form-control" type="text" value="">
+		角度(偏离正北顺时针):<input id="deg" class="form-control" type="text" value="">
+	</div>
+	<div id="picmap">
+		<div id="posdot"></div>
+	</div>
+</div>	
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript">
+clock();
+second=1;
+var int=self.setInterval("clock()",3000);
+function clock(){
+	$.ajax({
+            url:'serverdata.txt',
+            success: function(data) {
+				receivedata=JSON.parse(data); 
+				$("#posdot").css("left",58+receivedata.X);
+				$("#posdot").css("top",583-receivedata.Y);
+				$("#locx").val(receivedata.X);
+				$("#locy").val(receivedata.Y);
+				$("#deg").val(receivedata.D);
+
+			}
+		});
+}
+</script>
+</body>
+</html>
