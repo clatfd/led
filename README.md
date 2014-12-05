@@ -10,7 +10,7 @@ using opencv 2.4.9
 
 Linux using raspbian on raspberry
 
-#File Tree
+##File Tree
 
 |___main.cpp		main program
 
@@ -28,12 +28,12 @@ Linux using raspbian on raspberry
 
 	 |_jquery.js	supporting script
 
-#compile under linux with opencv and wiringPi
+##compile under linux with opencv and wiringPi
 
 gcc main.cpp ledattr.cpp -o maindemo -ggdb `pkg-config opencv --cflags --libs` -lm  -lstdc++ -lwiringPi
 
 
-#linux installing opencv
+##linux installing opencv
 
 sudo apt-get install opencv-doc libcv4 libhighgui4 libcvaux4 libcv-dev libcvaux-dev libhighgui-dev libgtk2.0-dev
 
