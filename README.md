@@ -41,6 +41,6 @@ sudo apt-get install build-essential libgtk2.0-dev libavcodec-dev libavformat-de
 
 sudo apt-get install libopencv-dev
 
-#install wiringPi
+##install wiringPi
 
 Follow the instructions on wiringpi.com
