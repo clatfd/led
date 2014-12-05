@@ -1,9 +1,14 @@
 led location v2.0
+
 Capture picture of led lights on the ceiling to determine where the camera equipped toy car is.
+
 By Chen Li, Wang Dongyi
+
 2014.11
+
 using opencv 2.4.9
 Linux using raspbian on raspberry
+
 File Tree
 |___main.cpp		main program
  |_led.h			define classes
