@@ -32,7 +32,9 @@ LED ledattr[7];
 
 Point2f circlecenter[3];
 vector< vector<Point> >	contours;
+vector<RotatedRect>	rectProfile;
 VideoCapture cap(CAMERAID);
+int cPointID[3];
 
 bool Initcamera(){
 	if(!cap.isOpened())
@@ -85,7 +87,7 @@ void Capturephoto(){
 	imwrite("cpic.jpg",img2);
 }
 
-bool Checkvalidlocation(Point2f center,int currentid){
+bool Checkvalidlocation(Point2f center){
 	int x=(int)center.x;
 	int y=(int)center.y;
 	if(2*H*x+W*y<H*W/2){
@@ -108,42 +110,6 @@ bool Checkvalidlocation(Point2f center,int currentid){
 	return 1;
 }
 
-bool Checkpoints(Mat frame){
-	Mat image;
-	cvtColor (frame,image,CV_BGR2GRAY);	
-	Mat imgCanny;
-	Canny(image, imgCanny, THRESH, THRESH * 3);
-	findContours(imgCanny, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	#ifdef DEMO 
-	imshow("canny",imgCanny);
-	#endif
-	//waitKey(0);
-	cout<<"Find "<<contours.size()<<" led!"<<endl;
-	if(contours.size()<3||contours.size()>500)
-		return 0;
-	//find center
-	float radius[500];
-	Point2f possiblecirclecenter[500];
-	int validcenternum=0;
-	for(unsigned int i=0;i<contours.size();i++){
-		minEnclosingCircle(contours[i], possiblecirclecenter[i], radius[i]);
-		if((radius[i]*radius[i]*3.14<3000)&&(radius[i]*radius[i]*3.14>300)&&(contourArea(contours[i])<3000)&&(contourArea(contours[i])>300)&&Checkvalidlocation(possiblecirclecenter[i],validcenternum)){
-			circlecenter[validcenternum].x=(int)possiblecirclecenter[i].x;
-			circlecenter[validcenternum].y=(int)possiblecirclecenter[i].y;
-			validcenternum++;
-		}
-	}
-	//check valid location 
-	if(validcenternum==3){
-		cout<<"valid"<<endl;
-		return 1;
-	}
-	else{
-		cout<<"Err:Find "<<validcenternum<<" valid led in vision."<<endl;
-		return 0;
-	}
-}
-
 int Selcoltype(int ori){
 	/*
 	if(ori>=0&&ori<80)
@@ -159,21 +125,93 @@ int Selcoltype(int ori){
 		return 1;
 }
 int SelHSVcoltype(int h,int s){
+	if(h>=127&&h<=185)	//green
+		return 1;
+	else if(h>185&&h<=250)//blue
+		return 2;
+	else if(h>339||h<=21)//light blue
+		return 3;
+	/*
 	if(h>=220&&h<260)	//blue
 		return 1;
 	else if(h>96&&h<=144)//green
 		return 2;
 	else if(h>159&&h<=201)//light blue
 		return 3;
+	
 	else if(h>339||h<=21)//red
 		return 4;
 	else if(h>279&&h<=321)//purple
 		return 5;
 	else if(h>39&&h<=81)//yellow
 		return 6;
+	*/
 	else 
 		return -1;
 }
+
+bool Checkpoints(Mat frame){
+	Mat imghsv;
+	cvtColor (frame,imghsv,CV_BGR2HSV);
+	Mat mv[3];
+	split(imghsv,mv);
+	#ifdef DEMO 
+	imshow("S",mv[1]);
+	imwrite("imgS.jpg",mv[1]);
+	#endif
+	Mat Sthres;
+	threshold(mv[1],Sthres,200,255,CV_THRESH_BINARY);
+	#ifdef DEMO 
+	imshow("S",Sthres);
+	imwrite("imgthres.jpg",Sthres);
+	waitKey(0);
+	#endif
+	Mat imgSCanny;
+	//Canny(Sthres, imgSCanny, 50, 100);
+	findContours(Sthres, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	
+	
+	vector<int> validcontour;
+	int validcenternum=0;
+	for(unsigned int i=0;i<contours.size();i++){
+		//cout<<contourArea(contours[i])<<endl;
+		if(contourArea(contours[i])>200){
+			
+			validcontour.push_back(i);
+			Point2f pointcur;
+			pointcur.x=(int)minAreaRect(contours[i]).center.x;
+			pointcur.y=(int)minAreaRect(contours[i]).center.y;
+			if(Checkvalidlocation(pointcur)){
+				if(validcenternum==3){
+					cout<<"more than 3 led."<<endl;
+					return 0;
+				}
+				rectProfile.push_back(minAreaRect(contours[i]));
+				circlecenter[validcenternum]=pointcur;
+				validcenternum++;
+			}
+
+		}
+	}
+	if(validcontour.size()!=3){
+		cout<<"Err..Find "<<contours.size()<<" led!"<<endl;
+		return 0;
+	}
+	
+	int t;
+	for(t=0;t<3;t++){
+		cPointID[t]=SelHSVcoltype(imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]*2,imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]);  
+		cout<<"ID:"<<cPointID[t]<<"    ";
+		cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]*2<<",";
+		cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]<<",";
+		cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[2]<<endl;
+		if(cPointID[t]==-1){
+			cout<<"err_pic_color"<<endl;
+			return 0;
+		}
+	}
+}
+
 LOC Examinepoint(LED led1, LED led2, LED led3){
 	LOC location;
 	location.num=-1;
@@ -230,7 +268,6 @@ void Turnright(int time){
 	delay(500);
 	digitalWrite(1,HIGH);
 	#endif
-
 }
 
 int main(){
@@ -240,9 +277,9 @@ int main(){
 	Mat img;
 	while(1){
 		while(1){
-			Capturephoto();
+			//Capturephoto();
 			img=imread("cpic.jpg");		//pic captured
-			//img=imread("yt4.jpg");	//test
+			//img=imread("yt2.jpg");	//test
 			if(Checkpoints(img))
 				break;
 			else{
@@ -273,29 +310,8 @@ int main(){
 		}
 	*/
 		//use hsv to select
-		int cPointID[3];
-		Mat imghsv;
-		cvtColor (img,imghsv,CV_BGR2HSV);
-		int t;
-		for(t=0;t<3;t++){
-			cPointID[t]=SelHSVcoltype(imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]*2,imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]);  
-			cout<<"ID:"<<cPointID[t]<<"    ";
-			cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]*2<<",";
-			cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]<<",";
-			cout<<(double)imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[2]<<endl;
-			if(cPointID[t]==-1)
-				break;
-		}
-		if(cPointID[t]==-1){
-			cout<<"err_pic_color"<<endl;
-			continue;
-		}
-
-		LOC location=Examinepoint(ledattr[cPointID[0]],ledattr[cPointID[1]],ledattr[cPointID[2]]);
-		if(location.num==-1){
-			cout<<"err_loc"<<endl;
-			continue;
-		}
+		
+		
 		/*
 		//log location to file
 		locout<<circlecenter[0].x<<","<<circlecenter[0].y<<endl;
@@ -304,6 +320,7 @@ int main(){
 		locout<<location.condition<<endl;
 		locout<<location.num<<endl;
 		*/
+		LOC location=Examinepoint(ledattr[cPointID[0]],ledattr[cPointID[1]],ledattr[cPointID[2]]);
 		cout<<"Condition:"<<location.condition<<", Node:"<<location.num<<endl;
 		location.width=H;
 		location.length=W;
@@ -349,6 +366,9 @@ int main(){
 		for(int i=0;i<3;i++){
 			circlecenterdraw[i].x=circlecenter[i].x;
 			circlecenterdraw[i].y=circlecenter[i].y;
+			char locnumpic[3];
+			sprintf(locnumpic,"P%d",i);
+			putText(img,locnumpic, circlecenterdraw[i],FONT_HERSHEY_SIMPLEX,0.4,Scalar(255,0,0));
 			if(location.num==i+1)
 				circle(img, circlecenterdraw[i], 3, Scalar(255,0,255), 3); 
 			else
@@ -357,7 +377,7 @@ int main(){
 		#ifdef DEMO 
 		imshow("led",img);
 		#endif
-		//imwrite("Result.jpg",img);
+		imwrite("Result.jpg",img);
 		//waitKey(0);
 		//destroyAllWindows();
 		#ifdef _WIN32
