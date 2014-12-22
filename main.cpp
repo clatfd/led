@@ -23,21 +23,6 @@
 #define LENGTHINVISION 200
 //#define DEMO		//comment to hide display; uncomment to show ,press ESC to capture
 
-//front left motor
-#define FRONTLEFTMOTORFORPIN 8
-#define FRONTLEFTMOTORBACKPIN 9
-//front right motor
-#define FRONTRIGHTMOTORFORPIN 0
-#define FRONTRIGHTMOTORBACKPIN 2
-//behind left motor
-#define BEHINDLEFTMOTORFORPIN 10
-#define BEHINDLEFTMOTORBACKPIN 11
-//behind right motor
-#define BEHINDRIGHTMOTORFORPIN 5
-#define BEHINDRIGHTMOTORBACKPIN 4
-
-#define MOTORSTEPTIME 300
-
 using namespace cv;
 using namespace std;
 
@@ -286,17 +271,9 @@ void Turnleft(int time){
 	cout<<"turning left.."<<endl;
 	#ifdef _WIN32
 	#else
-	digitalWrite(FRONTLEFTMOTORFORPIN,HIGH);	
-	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,HIGH);	
-	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
-	delay(MOTORSTEPTIME);
-	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);
+	//	ofstream fsetdir;
+	//	fsetdir.open("/usr/share/nginx/www/led/setdir.txt"); 
+	//	fsetdir<<"l"<<endl;
 	#endif
 }
 
@@ -304,17 +281,7 @@ void Turnright(int time){
 	cout<<"turning right.."<<endl;
 	#ifdef _WIN32
 	#else
-	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);	
-	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,HIGH);
-	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);	
-	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,HIGH);
-	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
-	delay(MOTORSTEPTIME);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	
 	#endif
 }
 
@@ -322,19 +289,7 @@ void Straightforward(){
 	cout<<"Going forward.."<<endl;
 	#ifdef _WIN32
 	#else
-	digitalWrite(FRONTLEFTMOTORFORPIN,HIGH);	
-	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,HIGH);
-	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,HIGH);	
-	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,HIGH);
-	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
-	delay(MOTORSTEPTIME);
-	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	
 	#endif
 }
 
@@ -342,19 +297,7 @@ void Straightbackward(){
 	cout<<"Going backward.."<<endl;
 	#ifdef _WIN32
 	#else
-	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);	
-	digitalWrite(FRONTLEFTMOTORBACKPIN,HIGH);
-	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORBACKPIN,HIGH);
-	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);	
-	digitalWrite(BEHINDLEFTMOTORBACKPIN,HIGH);
-	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORBACKPIN,HIGH);
-	delay(MOTORSTEPTIME);
-	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
-	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
-	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
+	
 	#endif
 }
 
@@ -379,26 +322,6 @@ int main(){
 				#endif
 			}
 		}
-	/*	
-		//use rgb to select
-		int cPointR[3],cPointG[3],cPointB[3],cPointID[3];
-		for(int t=0;t<3;t++){
-			cPointB[t]=Selcoltype(img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]);  
-			cPointG[t]=Selcoltype(img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]);  
-			cPointR[t]=Selcoltype(img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[2]);
-			//cPointID[t]=cPointR[t]*9+cPointG[t]*3+cPointB[t];
-			cPointID[t]=cPointR[t]*4+cPointG[t]*2+cPointB[t];
-
-			cout<<"ID:"<<cPointID[t]<<"  "<<cPointR[t]<<","<<cPointG[t]<<","<<cPointB[t]<<"    ";
-			cout<<(int)img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[2]<<",";
-			cout<<(int)img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]<<",";
-			cout<<(int)img.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]<<endl;
-			if(cPointID[t]==-1)
-				break;
-		}
-	*/
-		//use hsv to select
-		
 		
 		/*
 		//log location to file
@@ -435,20 +358,7 @@ int main(){
 		serverdata<<"{\"X\":"<<location.realx<<",\"Y\":"<<location.realy<<",\"D\":"<<position.positiondegree<<"}"<<endl;
 		serverdata.close();
 
-		#ifdef _WIN32
-		#else
-		//motor control
-		wiringPiSetup();
-		pinMode(FRONTLEFTMOTORFORPIN,OUTPUT);
-		pinMode(FRONTLEFTMOTORBACKPIN,OUTPUT);
-		pinMode(FRONTRIGHTMOTORFORPIN,OUTPUT);
-		pinMode(FRONTRIGHTMOTORBACKPIN,OUTPUT);
-		pinMode(BEHINDLEFTMOTORFORPIN,OUTPUT);
-		pinMode(BEHINDLEFTMOTORBACKPIN,OUTPUT);
-		pinMode(BEHINDRIGHTMOTORFORPIN,OUTPUT);
-		pinMode(BEHINDRIGHTMOTORBACKPIN,OUTPUT);
-		#endif
-//		position.positiondegree=344;
+/*	auto control
 		if(position.positiondegree>15&&position.positiondegree<180)
 			Turnleft(position.positiondegree);
 		else if(position.positiondegree<345&&position.positiondegree>180)
@@ -456,7 +366,7 @@ int main(){
 		else{
 			Straightforward();
 		}
-
+*/
 		Point circlecenterdraw[3];
 		for(int i=0;i<3;i++){
 			circlecenterdraw[i].x=circlecenter[i].x;
@@ -469,6 +379,10 @@ int main(){
 			else
 				circle(img, circlecenterdraw[i], 3, Scalar(255,0,0), 3); 
 		}
+		line(img,Point(W/4,0), Point(0,H/4),Scalar(0,0,255));
+		line(img,Point(3*W/4,0),Point(W,H/4),Scalar(0,0,255));
+		line(img,Point(W/4,H),Point(0,3*H/4),Scalar(0,0,255));
+		line(img,Point(3*W/4,H),Point(W,3*H/4),Scalar(0,0,255));
 		#ifdef DEMO 
 		imshow("led",img);
 		#endif
