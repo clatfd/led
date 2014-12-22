@@ -1,0 +1,52 @@
+div.state{
+	height: 50px;
+	padding-bottom: 20px;
+}
+#picmap{
+	margin: auto;
+	background: url('../map.jpg');
+	width: 300px;
+	height: 700px;
+	border: 1px solid;
+	text-align: left;
+}
+#posdot{
+	width: 20px;
+	height: 20px;
+	background: url('../car.png');
+	margin-left: -10px;
+	margin-top: -10px;
+	position: relative;
+}
+#controlpannel{
+	height: 300px;
+	width: 300px;
+	background-color: #F5F5F5;
+	position: absolute;
+	left: 150px;
+	top: 200px;
+}
+.panarrow{
+	height: 100px;
+	width: 100px;
+	line-height:100px;
+	position: absolute;
+	background-color: #B2B2B2;
+	cursor: pointer;
+}
+#panup{
+	left: 100px;
+	top: 0px;
+}
+#pandown{
+	left: 100px;
+	top: 200px;
+}
+#panleft{
+	left: 0px;
+	top: 100px;
+}
+#panright{
+	left: 200px;
+	top: 100px;
+}
