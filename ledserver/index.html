@@ -2,27 +2,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 	<title>LED</title>
-	<style type="text/css">
-		div.state{
-			height: 50px;
-			padding-bottom: 20px;
-		}
-		#picmap{
-			margin: auto;
-			background: url('map.jpg');
-			width: 300px;
-			height: 700px;
-			border: 1px solid;
-		}
-		#posdot{
-			width: 20px;
-			height: 20px;
-			background: url('car.png');
-			margin-left: -10px;
-			margin-top: -10px;
-			position: relative;
-		}
-	</style>
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
+<link rel="stylesheet" type="text/css" href="css/main.css">
+	
 </head>
 <body style="text-align:center">
 <div class="container" style="margin:auto">
@@ -32,15 +14,22 @@
 		Y:<input id="locy" class="form-control" type="text" value="">
 		角度(偏离正北顺时针):<input id="deg" class="form-control" type="text" value="">
 	</div>
-	<div id="picmap">
+	<div id="picmap" onclick="getXY(this)">
 		<div id="posdot"></div>
+	</div>
+	<div id="controlpannel">
+		<div class="panarrow" id="panup">UP</div>
+		<div class="panarrow" id="pandown">DOWN</div>
+		<div class="panarrow" id="panleft">LEFT</div>
+		<div class="panarrow" id="panright">RIGHT</div>
 	</div>
 </div>	
 <script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="json2.min.js"></script>
+<script type="text/javascript" src="toastr.min.js"></script>
+
 <script type="text/javascript">
-clock();
-second=1;
-var int=self.setInterval("clock()",3000);
+
 function clock(){
 	$.ajax({
             url:'serverdata.txt',
@@ -48,6 +37,11 @@ function clock(){
 				receivedata=JSON.parse(data); 
 				$("#posdot").css("left",58+receivedata.X);
 				$("#posdot").css("top",583-receivedata.Y);
+	    		$("#posdot").css('-webkit-transform','rotate('+receivedata.D+'deg)');       
+	    		$("#posdot").css('-moz-transform','rotate('+receivedata.D+'deg)');       
+	    		$("#posdot").css('-ms-transform','rotate('+receivedata.D+'deg)'); 
+	    		$("#posdot").css('-o-transform','rotate('+receivedata.D+'deg)');       
+	    		$("#posdot").css('transform','rotate('+receivedata.D+'deg)');       
 				$("#locx").val(receivedata.X);
 				$("#locy").val(receivedata.Y);
 				$("#deg").val(receivedata.D);
@@ -55,6 +49,40 @@ function clock(){
 			}
 		});
 }
+function getXY(obj){
+     var x=0 ,y=0;
+     for(var Obj = obj; Obj; Obj = Obj.offsetParent)
+     {
+           x += parseInt(Obj.offsetLeft);
+           y += parseInt(Obj.offsetTop);
+     }
+     x = (event.clientX+document.body.scrollLeft-x)-58;
+     y = 583-(event.clientY+document.body.scrollTop -y);
+     //toastr.info("X="+x+"  Y="+y);
+     $.ajax({
+            url:'setpos.php?x='+x+'&y='+y,
+            success: function(data) {
+				receivedata=JSON.parse(data); 
+				toastr.info(receivedata.msg);
+
+			}
+		});
+}
+$(".panarrow").click(function(){
+	dir=$(this).attr("id").slice(3);
+	$.ajax({
+            url:'setdirect.php?mode='+dir,
+            success: function(data) {
+				receivedata=JSON.parse(data); 
+				toastr.info(receivedata.msg);
+
+			}
+		});
+
+})
+
+clock();
+var int=self.setInterval("clock()",3000);
 </script>
 </body>
 </html>

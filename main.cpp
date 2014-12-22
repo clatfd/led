@@ -21,7 +21,22 @@
 #define THRESH 30
 #define CAMERAID 0
 #define LENGTHINVISION 200
-#define DEMO		//comment to hide display; uncomment to show ,press ESC to capture
+//#define DEMO		//comment to hide display; uncomment to show ,press ESC to capture
+
+//front left motor
+#define FRONTLEFTMOTORFORPIN 8
+#define FRONTLEFTMOTORBACKPIN 9
+//front right motor
+#define FRONTRIGHTMOTORFORPIN 0
+#define FRONTRIGHTMOTORBACKPIN 2
+//behind left motor
+#define BEHINDLEFTMOTORFORPIN 10
+#define BEHINDLEFTMOTORBACKPIN 11
+//behind right motor
+#define BEHINDRIGHTMOTORFORPIN 5
+#define BEHINDRIGHTMOTORBACKPIN 4
+
+#define MOTORSTEPTIME 300
 
 using namespace cv;
 using namespace std;
@@ -128,9 +143,9 @@ int SelHSVcoltype(int h,int s){
 	if(h>=127&&h<=185)	//green
 		return 1;
 	else if(h>185&&h<=250)//blue
-		return 2;
-	else if(h>339||h<=21)//light blue
 		return 3;
+	else if(h>339||h<=21)//red
+		return 2;
 	/*
 	if(h>=220&&h<260)	//blue
 		return 1;
@@ -158,25 +173,36 @@ bool Checkpoints(Mat frame){
 	#ifdef DEMO 
 	imshow("S",mv[1]);
 	imwrite("imgS.jpg",mv[1]);
+	//imshow("H",mv[0]);
+	//imwrite("imgH.jpg",mv[0]);
+	//imshow("V",mv[2]);
+	//imwrite("imgV.jpg",mv[2]);
 	#endif
 	Mat Sthres;
-	threshold(mv[1],Sthres,200,255,CV_THRESH_BINARY);
+	threshold(mv[1],Sthres,80,255,CV_THRESH_BINARY);
 	#ifdef DEMO 
 	imshow("S",Sthres);
 	imwrite("imgthres.jpg",Sthres);
 	waitKey(0);
 	#endif
-	Mat imgSCanny;
-	//Canny(Sthres, imgSCanny, 50, 100);
+ 	Mat imgSCanny;
+
+//	findContours(img_erode, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	findContours(Sthres, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-	
-	
+	/*
+	Mat cc = frame;
+	for (int j = 0; j < contours.size(); j++){
+		Scalar color(rand()&255, rand()&255, rand()&255);
+		drawContours(cc, contours, j, color);
+	}
+	imshow("contours", cc);
+	imwrite("contours.jpg",cc);
+	*/
 	vector<int> validcontour;
 	int validcenternum=0;
 	for(unsigned int i=0;i<contours.size();i++){
 		//cout<<contourArea(contours[i])<<endl;
-		if(contourArea(contours[i])>200){
-			
+		if(contourArea(contours[i])>1000){
 			validcontour.push_back(i);
 			Point2f pointcur;
 			pointcur.x=(int)minAreaRect(contours[i]).center.x;
@@ -193,11 +219,19 @@ bool Checkpoints(Mat frame){
 
 		}
 	}
+	#ifdef DEMO 
+	Mat ccc = frame;
+	for (int j = 0; j < validcenternum; j++){
+		Scalar color(rand()&255, rand()&255, rand()&255);
+		drawContours(ccc, contours, validcontour[j], color);
+	}
+	imshow("validcontours", ccc);
+	imwrite("validcontours.jpg",ccc);
+	#endif
 	if(validcontour.size()!=3){
 		cout<<"Err..Find "<<contours.size()<<" led!"<<endl;
 		return 0;
 	}
-	
 	int t;
 	for(t=0;t<3;t++){
 		cPointID[t]=SelHSVcoltype(imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[0]*2,imghsv.at<Vec3b>(circlecenter[t].y,circlecenter[t].x)[1]);  
@@ -210,6 +244,7 @@ bool Checkpoints(Mat frame){
 			return 0;
 		}
 	}
+	return 1;
 }
 
 LOC Examinepoint(LED led1, LED led2, LED led3){
@@ -247,26 +282,79 @@ LOC Examinepoint(LED led1, LED led2, LED led3){
 	return location;
 }
 
-//link port 0 and 1 to relay controlled motor
 void Turnleft(int time){
 	cout<<"turning left.."<<endl;
 	#ifdef _WIN32
 	#else
-	digitalWrite(1,HIGH);	
-	digitalWrite(0,LOW);
-	delay(500);
-	digitalWrite(0,HIGH);
+	digitalWrite(FRONTLEFTMOTORFORPIN,HIGH);	
+	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,HIGH);	
+	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
+	delay(MOTORSTEPTIME);
+	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);
 	#endif
 }
 
 void Turnright(int time){
+	cout<<"turning right.."<<endl;
 	#ifdef _WIN32
 	#else
-	cout<<"turning right.."<<endl;
-	digitalWrite(0,HIGH);
-	digitalWrite(1,LOW);
-	delay(500);
-	digitalWrite(1,HIGH);
+	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);	
+	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,HIGH);
+	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);	
+	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,HIGH);
+	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
+	delay(MOTORSTEPTIME);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	#endif
+}
+
+void Straightforward(){
+	cout<<"Going forward.."<<endl;
+	#ifdef _WIN32
+	#else
+	digitalWrite(FRONTLEFTMOTORFORPIN,HIGH);	
+	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,HIGH);
+	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,HIGH);	
+	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,HIGH);
+	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
+	delay(MOTORSTEPTIME);
+	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	#endif
+}
+
+void Straightbackward(){
+	cout<<"Going backward.."<<endl;
+	#ifdef _WIN32
+	#else
+	digitalWrite(FRONTLEFTMOTORFORPIN,LOW);	
+	digitalWrite(FRONTLEFTMOTORBACKPIN,HIGH);
+	digitalWrite(FRONTRIGHTMOTORFORPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORBACKPIN,HIGH);
+	digitalWrite(BEHINDLEFTMOTORFORPIN,LOW);	
+	digitalWrite(BEHINDLEFTMOTORBACKPIN,HIGH);
+	digitalWrite(BEHINDRIGHTMOTORFORPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORBACKPIN,HIGH);
+	delay(MOTORSTEPTIME);
+	digitalWrite(FRONTLEFTMOTORBACKPIN,LOW);
+	digitalWrite(FRONTRIGHTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDLEFTMOTORBACKPIN,LOW);
+	digitalWrite(BEHINDRIGHTMOTORBACKPIN,LOW);
 	#endif
 }
 
@@ -277,7 +365,7 @@ int main(){
 	Mat img;
 	while(1){
 		while(1){
-			//Capturephoto();
+		//	Capturephoto();
 			img=imread("cpic.jpg");		//pic captured
 			//img=imread("yt2.jpg");	//test
 			if(Checkpoints(img))
@@ -351,16 +439,23 @@ int main(){
 		#else
 		//motor control
 		wiringPiSetup();
-		pinMode(0,OUTPUT);
-		pinMode(1,OUTPUT);
+		pinMode(FRONTLEFTMOTORFORPIN,OUTPUT);
+		pinMode(FRONTLEFTMOTORBACKPIN,OUTPUT);
+		pinMode(FRONTRIGHTMOTORFORPIN,OUTPUT);
+		pinMode(FRONTRIGHTMOTORBACKPIN,OUTPUT);
+		pinMode(BEHINDLEFTMOTORFORPIN,OUTPUT);
+		pinMode(BEHINDLEFTMOTORBACKPIN,OUTPUT);
+		pinMode(BEHINDRIGHTMOTORFORPIN,OUTPUT);
+		pinMode(BEHINDRIGHTMOTORBACKPIN,OUTPUT);
 		#endif
-
+//		position.positiondegree=344;
 		if(position.positiondegree>15&&position.positiondegree<180)
 			Turnleft(position.positiondegree);
 		else if(position.positiondegree<345&&position.positiondegree>180)
 			Turnright(position.positiondegree);
-		else
-			cout<<"Straight!";
+		else{
+			Straightforward();
+		}
 
 		Point circlecenterdraw[3];
 		for(int i=0;i<3;i++){
@@ -381,9 +476,9 @@ int main(){
 		//waitKey(0);
 		//destroyAllWindows();
 		#ifdef _WIN32
-			Sleep(2000);
+			Sleep(500);
 		#else
-			usleep(2000*1000);  
+			usleep(15000*1000);  
 		#endif
 	}
 }
