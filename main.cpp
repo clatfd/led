@@ -21,7 +21,7 @@
 #define THRESH 30
 #define CAMERAID 0
 #define LENGTHINVISION 200
-//#define DEMO		//comment to hide display; uncomment to show ,press ESC to capture
+#define DEMO		//comment to hide display; uncomment to show ,press ESC to capture
 
 using namespace cv;
 using namespace std;
@@ -81,6 +81,7 @@ void Capturephoto(){
 	#endif
 	cap>>frame;
 #endif
+	
 	Mat img2;
     resize(frame,img2,Size(461,346),0,0,CV_INTER_LINEAR);
 	img2 = img2(Range(0,346),Range(30,430));
@@ -308,7 +309,7 @@ int main(){
 	Mat img;
 	while(1){
 		while(1){
-		//	Capturephoto();
+			//Capturephoto();
 			img=imread("cpic.jpg");		//pic captured
 			//img=imread("yt2.jpg");	//test
 			if(Checkpoints(img))
